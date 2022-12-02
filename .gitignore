@@ -4,3 +4,4 @@ Scripts/
 pyvenv.cfg
 settings.json
 Data/
+bin/
