@@ -1,5 +1,9 @@
-import email, email.parser, sys, os
+import email, email.parser, sys, os, string, random, zipfile
 from prettytable import PrettyTable
+
+
+outfile = "out.html"
+style = "<style>td {font-size: small; border-bottom: 1px solid;} th {border-bottom: 2px solid}</style>\n"
 
 
 def header_decode(header):
@@ -11,11 +15,22 @@ def header_decode(header):
     return hdr
 
 
+def randfilename(size=6, chars=string.ascii_uppercase + string.digits):
+    return "".join(random.choice(chars) for _ in range(size)) + ".eml"
+
+
 count = 1
-t = PrettyTable(["C", "OD", "PRE", "PREDMET", "DÁTUM"])
+t = PrettyTable(["#", "FILE", "OD", "PRE", "PREDMET", "DÁTUM"])
+
+print(f'Vidím tu celkovo: {len(os.listdir(os.getcwd() + "/data"))} súbory')
+if not input("Je to OK? (A/N): ") == "A":
+    print("Končím...")
+    sys.exit()
+
+z = zipfile.ZipFile("./complet/archive.zip", "w")
 
 for filename in os.listdir(os.getcwd() + "/data"):
-
+    print(f"Spracovávam súbor: {filename}", end=" ")
     try:
         f = open(os.path.join(os.getcwd(), "data/", filename), "r", encoding="utf8")
 
@@ -30,16 +45,22 @@ for filename in os.listdir(os.getcwd() + "/data"):
         to = header_decode(msg["To"])
         sbj = header_decode(msg["Subject"])
         date = header_decode(msg["Date"])
-        t.add_row([count, frm, to, sbj, date])
+        filen = randfilename(8)
+        t.add_row([count, filen, frm, to, sbj, date])
         count += 1
+        print(" OK!")
+    z.write(os.path.join(os.getcwd(), "data/", filename), arcname=filen)
+z.close()
+print("Emaily uložené do ZIP archivu")
 
-print(t.get_html_string())
 
 try:
-    out = open(os.path.join(os.getcwd(), "out.html"), "w")
+    print(f"Ukladám zoznam do {outfile}")
+    out = open(os.path.join(os.getcwd(), "complet/", outfile), "w")
 except OSError:
     print("Could not create out file!")
     sys.exit()
 
 with out:
-    out.write(t.get_html_string(format=True))
+    outtext = style + t.get_html_string(format=True)
+    out.write(outtext)
