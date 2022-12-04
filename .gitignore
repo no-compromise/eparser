@@ -6,3 +6,4 @@ settings.json
 Data/
 bin/
 complet/
+.DS_Store

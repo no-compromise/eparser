@@ -2,10 +2,7 @@ import email, email.parser, sys, os, string, random, zipfile
 from prettytable import PrettyTable
 
 
-outfile = "out.html"
-style = "<style>td {font-size: small; border-bottom: 1px solid;} th {border-bottom: 2px solid}</style>\n"
-
-
+# Functions
 def header_decode(header):
     hdr = ""
     for text, encoding in email.header.decode_header(header):  # type: ignore
@@ -19,17 +16,34 @@ def randfilename(size=6, chars=string.ascii_uppercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size)) + ".eml"
 
 
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith("."):
+            yield f
+
+
+# Vars
+outfile = "out.html"
+style = "<style>td {font-size: small; border-bottom: 1px solid;} th {border-bottom: 2px solid}</style>\n"
+flist = listdir_nohidden(os.getcwd() + "/data")
+
+
+# Main code
+
 count = 1
 t = PrettyTable(["#", "FILE", "OD", "PRE", "PREDMET", "DÁTUM"])
 
-print(f'Vidím tu celkovo: {len(os.listdir(os.getcwd() + "/data"))} súbory')
-if not input("Je to OK? (A/N): ") == "A":
+if len(list(listdir_nohidden(os.getcwd() + "/data"))) == 0:
+    print("Nenašiel som žiadny súbor. Končím.")
+    sys.exit()
+print(f'Vidím tu celkovo: {len(list(listdir_nohidden(os.getcwd() + "/data")))} súbory')
+if not input("Je to OK? (a/n): ") == "a":
     print("Končím...")
     sys.exit()
 
 z = zipfile.ZipFile("./complet/archive.zip", "w")
 
-for filename in os.listdir(os.getcwd() + "/data"):
+for filename in listdir_nohidden(os.getcwd() + "/data"):
     print(f"Spracovávam súbor: {filename}", end=" ")
     try:
         f = open(os.path.join(os.getcwd(), "data/", filename), "r", encoding="utf8")
@@ -64,3 +78,5 @@ except OSError:
 with out:
     outtext = style + t.get_html_string(format=True)
     out.write(outtext)
+
+print("Máme hotovo!")
