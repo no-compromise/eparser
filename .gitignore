@@ -7,3 +7,5 @@ Data/
 bin/
 complet/
 .DS_Store
+build/
+dist/
